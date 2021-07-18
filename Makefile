@@ -1,6 +1,10 @@
 .PHONY: bash
 bash: ## コンテナにbashで入る
-	docker-compose run --rm app bash
+	docker-compose run --rm --service-ports app bash
+
+.PHONY: up
+up: air ## ホットリロードでWebサーバーを起動
+	docker-compose run --rm --service-ports app air
 
 .PHONY: resolve-dependencies
 resolve-dependencies: ## 利用パッケージを入れたり、未利用パッケージを削除する
@@ -13,6 +17,14 @@ air: ## Goでホットリロードを実現するairのインストール
 .PHONY: clean
 clean: ## docker volumeを含めた掃除
 	docker-compose down --volume
+
+.PHONY: curl
+curl: ## curlでお試し
+	$(eval JWT_TOKEN := $(shell curl -s localhost:8080/auth))
+	@echo "==================TOKEN 無し"
+	curl -is localhost:8080/private-ping
+	@echo "==================TOKEN 有り"
+	curl -is localhost:8080/private-ping -H 'Authorization: Bearer $(JWT_TOKEN)'
 
 ################################################################################
 # Utility-Command help
